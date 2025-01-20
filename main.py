@@ -354,12 +354,16 @@ class Game:
         """Regenerates the planet's properties to create a new planet."""
         self.radius = random.randint(30, 50)
         self.cloud_radius = random.randint(self.radius + 5, self.radius + 10)
+        self.rotation_speed_y = random.randint(-2,2) * 0.02  # radians per frame around Y-axis
+        self.rotation_speed_x = random.randint(-2,2) * 0.01 
         self.planet_angle_y = 0.0
         self.planet_angle_x = 0.0
         self.noise_seed = random.randint(900, 1000)
         self.generate_random_color_palette()
 
     async def main(self):
+        self.rotation_speed_y = random.randint(-2,2) * 0.02  # radians per frame around Y-axis
+        self.rotation_speed_x = random.randint(-2,2) * 0.01 
         while True:
             mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get():
@@ -372,10 +376,8 @@ class Game:
                             self.regenerate_planet()
 
             # Update planet rotation angles for multi-axis rotation
-            rotation_speed_y = 0.02  # radians per frame around Y-axis
-            rotation_speed_x = 0.01  # radians per frame around X-axis
-            self.planet_angle_y += rotation_speed_y
-            self.planet_angle_x += rotation_speed_x
+            self.planet_angle_y += self.rotation_speed_y
+            self.planet_angle_x += self.rotation_speed_x
             self.planet_angle_y %= 2 * math.pi  # Keep within [0, 2π]
             self.planet_angle_x %= 2 * math.pi  # Keep within [0, 2π]
 
