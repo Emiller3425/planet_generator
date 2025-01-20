@@ -1,3 +1,11 @@
+# /// script
+# dependencies = [
+#  "numpy",
+#  "collections",
+#  "noise"
+# ]
+# ///
+
 import pygame
 import sys
 import math
@@ -5,6 +13,7 @@ import random
 import numpy as np
 import noise  # Ensure you have the noise library installed: pip install noise
 import collections
+import asyncio
 
 # Define a Star class to manage individual stars
 class Star:
@@ -350,7 +359,7 @@ class Game:
         self.noise_seed = random.randint(900, 1000)
         self.generate_random_color_palette()
 
-    def main(self):
+    async def main(self):
         while True:
             mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get():
@@ -396,6 +405,8 @@ class Game:
             # Update the display
             pygame.display.update()
             self.clock.tick(60)  # Limit to 60 FPS
+            await asyncio.sleep(0)
+
 
 if __name__ == "__main__":
-    Game().main()
+    asyncio.run(Game().main())
