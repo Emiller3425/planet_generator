@@ -14,7 +14,6 @@ jobs:
             python -m pip install pygbag
             python -m pip install pygame
             python -m pip install numpy
-            python -m pip install collections
             python -m pip install noise
             python -m pygbag --build $GITHUB_WORKSPACE/main.py
     - name : "Upload to GitHub pages branch gh-pages"
