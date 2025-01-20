@@ -42,7 +42,7 @@ class Star:
 class Game:
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption("Rotating Earth with Perlin Noise and Day-Night Cycle")
+        pygame.display.set_caption("Planet Generator")
         self.screen_width, self.screen_height = 720, 600
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.display_width, self.display_height = 240, 200
@@ -96,26 +96,36 @@ class Game:
         # Initialize a counter for h values (optional, for debugging)
         self.h_counter = collections.defaultdict(int)
 
+        # Button properties
+        self.button_width, self.button_height = 150, 40
+        self.button_color = (70, 130, 180)  # Steel Blue
+        self.button_hover_color = (100, 149, 237)  # Cornflower Blue
+        self.button_text = "New Planet"
+        self.button_font = pygame.font.SysFont(None, 24)
+        self.button_rect = pygame.Rect(
+            self.screen_width - self.button_width - 20,
+            self.screen_height - self.button_height - 20,
+            self.button_width,
+            self.button_height
+        )
+
     def generate_random_color_palette(self):
-        """Generates completely random colors for all planet features, with deep ocean being a darker version of ocean."""
-        # Ocean: Completely random color
+        """Generates visually distinct random colors for planet features."""
+
+        # Generate random colors near the base colors
         self.ocean_color = self.random_color()
-        # Deep Ocean: Darker version of ocean_color by subtracting a fixed amount
-        self.deep_ocean_color = self.darken_color(self.ocean_color, amount=60)
-        # Beach: Completely random color
+        self.deep_ocean_color = self.darken_color(self.ocean_color, amount=50)
         self.beach_color = self.random_color()
-        # Forest: Completely random color
         self.forest_color = self.random_color()
-        # Mountains: Completely random color
         self.mountain_color = self.random_color()
-        # Clouds: Completely random color
-        self.cloud_color = self.random_color()
+        self.cloud_color = self.random_color()  # Clouds should remain close to white
+
 
     @staticmethod
     def random_color():
-        r = random.randint(0,255)
-        g = random.randint(0,255)
-        b = random.randint(0,255)
+        r = random.randint(0, 255)
+        g = random.randint(0, 255)
+        b = random.randint(0, 255)
         return (r,g,b)
 
     @staticmethod
@@ -172,7 +182,7 @@ class Game:
                     brightness = max(dot, 0)  # Clamp to [0, 1]
 
                     # Add ambient light
-                    ambient = 0.1  # Reduced from 0.2 for darker nights
+                    ambient = 0.15  # Reduced from 0.2 for darker nights
                     brightness = ambient + (1 - ambient) * brightness
                     brightness = min(brightness, 1.0)  # Ensure it doesn't exceed 1
 
@@ -234,7 +244,7 @@ class Game:
         sinA_x = math.sin(self.planet_angle_x)
 
         # Cloud rendering
-        cloud_threshold = 0.6
+        cloud_threshold = 0.55
         time_offset = pygame.time.get_ticks() * 0.001  # Convert milliseconds to seconds
 
         for sx in range(-self.cloud_radius, self.cloud_radius, self.render_step):
@@ -292,7 +302,7 @@ class Game:
                         brightness_cloud = max(dot_cloud, 0)  # Clamp to [0,1]
 
                         # Add ambient light
-                        ambient_cloud = 0.1
+                        ambient_cloud = 0.15
                         brightness_cloud = ambient_cloud + (1 - ambient_cloud) * brightness_cloud
                         brightness_cloud = min(brightness_cloud, 1.0)  # Ensure it doesn't exceed 1
 
@@ -302,7 +312,7 @@ class Game:
                         )
 
                         # Blend shaded cloud color with existing color
-                        alpha = 0.5  # Semi-transparent
+                        alpha = 0.8  # Semi-transparent
                         screen_x = self.cx + sx
                         screen_y = self.cy + sy
 
@@ -317,13 +327,40 @@ class Game:
                             # Set the blended color
                             main_surface.set_at((screen_x, screen_y), blended_color)
 
+    def draw_button(self, surface, mouse_pos):
+        """Draws the 'New Planet' button on the screen."""
+        if self.button_rect.collidepoint(mouse_pos):
+            color = self.button_hover_color
+        else:
+            color = self.button_color
+
+        pygame.draw.rect(surface, color, self.button_rect, border_radius=5)
+
+        # Render the text
+        text_surface = self.button_font.render(self.button_text, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(center=self.button_rect.center)
+        surface.blit(text_surface, text_rect)
+
+    def regenerate_planet(self):
+        """Regenerates the planet's properties to create a new planet."""
+        self.radius = random.randint(30, 50)
+        self.cloud_radius = random.randint(self.radius + 5, self.radius + 10)
+        self.planet_angle_y = 0.0
+        self.planet_angle_x = 0.0
+        self.noise_seed = random.randint(900, 1000)
+        self.generate_random_color_palette()
+
     def main(self):
         while True:
-            # Handle events
+            mouse_pos = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:  # Left mouse button
+                        if self.button_rect.collidepoint(event.pos):
+                            self.regenerate_planet()
 
             # Update planet rotation angles for multi-axis rotation
             rotation_speed_y = 0.02  # radians per frame around Y-axis
@@ -352,6 +389,9 @@ class Game:
             # Scale the display to the screen size
             scaled_display = pygame.transform.scale(main_surface, (self.screen_width, self.screen_height))
             self.screen.blit(scaled_display, (0, 0))
+
+            # Draw the button on the screen
+            self.draw_button(self.screen, mouse_pos)
 
             # Update the display
             pygame.display.update()
